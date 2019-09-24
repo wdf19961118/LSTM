@@ -16,7 +16,6 @@ PATH_SAVE = './model/lstm_model.t7'
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
 transform_list = [
-       # transforms.Resize(size=(128,128),interpolation=3), #Image.BICUBIC
         transforms.ToTensor()
         ]
 
@@ -63,7 +62,7 @@ class SeqDataset(Dataset):
             current_imgs.append(img)
         current_label = self.transform(current_label)
         #print(current_label.shape)
-        batch_cur_imgs = np.stack(current_imgs, axis=0)  # [9, 3, 256, 256]
+        batch_cur_imgs = np.stack(current_imgs, axis=0)
         return batch_cur_imgs, current_label
 
     def __len__(self):
@@ -98,7 +97,7 @@ class EncoderMUG2d_LSTM(nn.Module):
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, inplace=True),
 
-            nn.Conv2d(512, 512, 4, 2, 1),  # 512*2*2 为128*128准备
+            nn.Conv2d(512, 512, 4, 2, 1),  # 512*2*2
             nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, inplace=True),
 
@@ -194,8 +193,6 @@ if __name__ == '__main__':
     train_data = SeqDataset(txt='./img_path.txt',transform=data_transforms)
     train_loader = DataLoader(train_data, shuffle=True, num_workers=20,batch_size=BATCH_SIZE)
 
-   # test_data = SeqDataset(txt='./img_test_path.txt',transform=data_transforms)
-   # test_loader = DataLoader(test_data, shuffle=True, num_workers=3,batch_size=BATCH_SIZE)
 
     model = net()
     if torch.cuda.is_available():
@@ -209,7 +206,6 @@ if __name__ == '__main__':
         print('epoch {}'.format(epoch + 1))
         train_loss = 0.
         train_acc = 0.
-        #count = 1
         for batch_x, batch_y in train_loader:
             inputs, label = Variable(batch_x).cuda(), Variable(batch_y).cuda()
             output = model(inputs)
@@ -227,6 +223,5 @@ if __name__ == '__main__':
                 os.mkdir('./conv_autoencoder')
             save_image(pic, './conv_autoencoder/decode_image_{}.png'.format(epoch + 1))
             save_image(img, './conv_autoencoder/raw_image_{}.png'.format(epoch + 1))
-        #count = count +1
 
     torch.save(model.state_dict(), PATH_SAVE)
